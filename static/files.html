@@ -87,6 +87,7 @@ body { background: #0d1117; color: #e6edf3; font-family: system-ui, sans-serif; 
 <div id="main">
   <div id="main-header">ファイルを選択してください</div>
   <div id="action-bar" style="display:none">
+    <button onclick="optimizeImage()" id="optimizeBtn" style="display:none"><i class="fa fa-compress"></i> 軽量化</button>
     <button onclick="startEdit()" id="editBtn"><i class="fa fa-pen"></i> 編集</button>
     <button onclick="saveEdit()" id="saveBtn" class="btn-save" style="display:none"><i class="fa fa-save"></i> 保存</button>
     <button onclick="cancelEdit()" id="cancelBtn" style="display:none"><i class="fa fa-times"></i> キャンセル</button>
@@ -205,9 +206,11 @@ async function openFile(i) {
   document.getElementById('main-header').innerHTML = breadcrumb;
   // action-bar表示 + 編集可否判定
   document.getElementById('action-bar').style.display = 'flex';
-  const editable = ['md','txt','json','jsonl'].includes(f.ext);
-  document.getElementById('editBtn').style.display = editable ? '' : 'none';
   cancelEdit();
+  const editable = ['md','txt','json','jsonl'].includes(f.ext);
+  const isImage = ['jpg','jpeg','png','webp'].includes(f.ext);
+  document.getElementById('editBtn').style.display = editable ? '' : 'none';
+  document.getElementById('optimizeBtn').style.display = isImage ? '' : 'none';
   currentFilePath = f.path;
   history.pushState(null, '', `?path=${encodeURIComponent(f.path)}`);
 
@@ -285,7 +288,7 @@ function cancelEdit() {
   document.getElementById('edit-area').style.display = 'none';
   document.getElementById('saveBtn').style.display = 'none';
   document.getElementById('cancelBtn').style.display = 'none';
-  document.getElementById('editBtn').style.display = '';
+  // editBtnの表示はopenFile側で制御するのでここでは触らない
   editing = false;
 }
 
@@ -327,6 +330,26 @@ async function doUpload(input) {
   const d = await r.json();
   if (d.ok) { const r2 = await fetch('/api/files'); allFiles = await r2.json(); renderList(); input.value = ''; }
   else alert('アップロード失敗: ' + d.error);
+}
+
+async function optimizeImage() {
+  if (!currentFilePath) return;
+  const maxWidth = prompt('最大幅（px）空白=変更なし:', '1280');
+  if (maxWidth === null) return;
+  const quality = prompt('品質（1-100）:', '80');
+  if (quality === null) return;
+  const r = await fetch('/api/file/optimize', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ path: currentFilePath, maxWidth: maxWidth || null, quality: parseInt(quality) || 80 })
+  });
+  const d = await r.json();
+  if (d.ok) {
+    const saved = (d.saved / 1024).toFixed(1);
+    const pct = Math.round((1 - d.after/d.before) * 100);
+    alert('軽量化完了！ ' + pct + '% 削減 (' + saved + 'KB 節約)');
+    openFile(allFiles.findIndex(f => f.path === currentFilePath));
+  } else alert('失敗: ' + d.error);
 }
 
 function filterByDir(dir) {

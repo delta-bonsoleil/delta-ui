@@ -10,7 +10,7 @@ const app = express();
 const PORT = 8900;
 
 const GEN_JS = path.join(__dirname, 'gen.cjs');
-const CASTS_DIR = path.join(__dirname, 'casts');
+const CASTS_DIR = '/home/delta/workspace/assets/casts';
 const GEN_DIR = '/home/delta/workspace/assets/generated';
 const STATIC_DIR = path.join(__dirname, 'static');
 
@@ -127,6 +127,29 @@ app.post('/api/file/save', express.json(), (req, res) => {
   res.json({ ok: true });
 });
 
+
+// 画像軽量化
+app.post('/api/file/optimize', express.json(), async (req, res) => {
+  const { path: p, maxWidth, quality } = req.body;
+  const root = Object.values(FILE_ROOTS).find(r => p?.startsWith(r));
+  if (!p || !root || !isSafe(root, p) || !fs.existsSync(p)) return res.status(404).json({ error: 'not found' });
+  const ext = path.extname(p).toLowerCase();
+  if (!['.jpg','.jpeg','.png','.webp'].includes(ext)) return res.status(400).json({ error: 'not an image' });
+  try {
+    const { default: sharp } = await import('sharp');
+    const before = fs.statSync(p).size;
+    let pipeline = sharp(p);
+    if (maxWidth) pipeline = pipeline.resize(parseInt(maxWidth), null, { withoutEnlargement: true });
+    if (ext === '.jpg' || ext === '.jpeg') pipeline = pipeline.jpeg({ quality: quality || 80 });
+    else if (ext === '.png') pipeline = pipeline.png({ compressionLevel: 8 });
+    else if (ext === '.webp') pipeline = pipeline.webp({ quality: quality || 80 });
+    const buf = await pipeline.toBuffer();
+    fs.writeFileSync(p, buf);
+    const after = fs.statSync(p).size;
+    res.json({ ok: true, before, after, saved: before - after });
+  } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // タッチプリセット
 app.get('/api/touch_presets', (req, res) => {
   const p = path.join(__dirname, 'touch_presets.json');
@@ -137,6 +160,8 @@ app.get('/api/touch_presets', (req, res) => {
 
 // ── ファイルビューア ──
 const FILE_ROOTS = {
+  workbench: '/home/delta/workspace/workbench',
+  casts: '/home/delta/workspace/assets/casts',
   docs: '/home/delta/workspace/docs',
   assets: '/home/delta/workspace/assets',
 };
