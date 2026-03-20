@@ -1,0 +1,50 @@
+{
+  "presets": [
+    {
+      "id": "manga_warm",
+      "label": "漫画調（温かみ）",
+      "prompt": "warm beige-toned soft manga style, high quality illustration"
+    },
+    {
+      "id": "manga_cool",
+      "label": "漫画調（クール）",
+      "prompt": "cool-toned clean manga style, crisp linework, high quality illustration"
+    },
+    {
+      "id": "anime",
+      "label": "アニメ調",
+      "prompt": "vibrant anime style, clean cel shading, bright colors, high quality"
+    },
+    {
+      "id": "gekiga",
+      "label": "劇画調",
+      "prompt": "dramatic gekiga style, heavy shadowing, intense linework, noir atmosphere"
+    },
+    {
+      "id": "pastel",
+      "label": "パステル調",
+      "prompt": "soft pastel illustration, delicate watercolor-like textures, gentle colors"
+    },
+    {
+      "id": "semi_real",
+      "label": "セミリアル",
+      "prompt": "semi-realistic digital art, detailed but stylized, painterly finish"
+    },
+    {
+      "id": "semi_real_anime",
+      "label": "セミリアルアニメ",
+      "prompt": "semi-realistic anime style, detailed facial features, soft lighting"
+    },
+    {
+      "id": "realistic",
+      "label": "リアリスティック",
+      "prompt": "photorealistic digital art, highly detailed, cinematic lighting"
+    },
+    {
+      "id": "sketch",
+      "label": "スケッチ風",
+      "prompt": "pencil sketch style, loose expressive linework, monochrome"
+    }
+  ],
+  "default": "manga_warm"
+}

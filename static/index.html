@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DELTA — bon-soleil Helsinki</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d1117; color: #e6edf3; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.container { text-align: center; padding: 40px 20px; }
+.logo { font-size: 3rem; font-weight: 700; letter-spacing: .2em; color: #58a6ff; margin-bottom: 4px; }
+.sub { font-size: .85rem; color: #444; letter-spacing: .15em; margin-bottom: 48px; }
+.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; max-width: 600px; margin: 0 auto; }
+.tool-card { background: #161b22; border: 1px solid #21262d; border-radius: 10px; padding: 28px 20px; text-decoration: none; color: #e6edf3; transition: border-color .2s, transform .2s; }
+.tool-card:hover { border-color: #58a6ff; transform: translateY(-2px); }
+.tool-card i { font-size: 2rem; margin-bottom: 12px; display: block; color: #58a6ff; }
+.tool-card .name { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+.tool-card .desc { font-size: .75rem; color: #666; }
+footer { margin-top: 60px; font-size: .7rem; color: #333; letter-spacing: .1em; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">DELTA</div>
+  <div class="sub">bon-soleil Helsinki — lightweight tools</div>
+  <div class="tools">
+    <a href="/tools/files.html" class="tool-card">
+      <i class="fa fa-folder-open"></i>
+      <div class="name">File Viewer</div>
+      <div class="desc">docs / assets ブラウザ</div>
+    </a>
+    <a href="/tools/image_gen.html" class="tool-card">
+      <i class="fa fa-wand-magic-sparkles"></i>
+      <div class="name">Image Gen</div>
+      <div class="desc">Gemini API 画像生成</div>
+    </a>
+  </div>
+  <footer>DELTA © bon-soleil Holdings</footer>
+</div>
+</body>
+</html>

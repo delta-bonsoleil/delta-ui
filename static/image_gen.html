@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>delta image gen</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d1117; color: #e6edf3; font-family: system-ui, sans-serif; padding: 0; max-width: 900px; margin: 0 auto; }
+#site-header { padding: 8px 14px; border-bottom: 1px solid #21262d; font-size: .8rem; color: #444; display: flex; align-items: center; gap: 10px; }
+#site-header a { color: #8b949e; text-decoration: none; }
+#site-header a:hover { color: #58a6ff; }
+#main-content { padding: 20px; }
+h1 { font-size: 1.2rem; color: #58a6ff; margin-bottom: 20px; }
+h1 span { color: #8b949e; font-size: .9rem; font-weight: normal; margin-left: 8px; }
+.section { margin-bottom: 16px; }
+label { display: block; font-size: .8rem; color: #8b949e; margin-bottom: 6px; }
+textarea, select { width: 100%; padding: 8px 10px; background: #161b22; border: 1px solid #30363d; border-radius: 6px; color: #e6edf3; font-size: .9rem; }
+textarea { height: 80px; resize: vertical; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* キャスト */
+.cast-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
+.cast-card { position: relative; width: 90px; cursor: pointer; border-radius: 8px; overflow: hidden; border: 2px solid #30363d; background: #161b22; transition: border-color .2s; }
+.cast-card:hover { border-color: #58a6ff; }
+.cast-card.selected { border-color: #58a6ff; }
+.cast-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+.cast-card .cast-name { font-size: .65rem; text-align: center; padding: 4px; color: #8b949e; background: #0d1117; }
+.cast-card .cast-badge { position: absolute; top: 4px; left: 4px; background: #58a6ff; color: #0d1117; font-size: .6rem; font-weight: bold; border-radius: 3px; padding: 1px 4px; }
+.style-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.style-btn { padding: 3px 10px; border: 1px solid #30363d; border-radius: 4px; background: #161b22; color: #666; cursor: pointer; font-size: .72rem; }
+.style-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+.style-btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+.cast-preview { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.cast-preview-item { text-align: center; }
+.cast-preview-item img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 2px solid #58a6ff; display: block; }
+.cast-preview-item span { font-size: .6rem; color: #58a6ff; }
+
+/* タッチ */
+.touch-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.touch-btn { padding: 5px 12px; border: 1px solid #30363d; border-radius: 20px; background: #161b22; color: #8b949e; cursor: pointer; font-size: .75rem; }
+.touch-btn:hover { border-color: #58a6ff; color: #58a6ff; }
+.touch-btn.active { background: #1f3a5f; border-color: #58a6ff; color: #58a6ff; }
+
+/* ボタン */
+.btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: .9rem; }
+.btn-primary { background: #238636; color: #fff; width: 100%; }
+.btn-primary:hover { background: #2ea043; }
+.btn-primary:disabled { background: #333; color: #666; }
+.btn-sm { padding: 4px 10px; background: #21262d; color: #8b949e; border: 1px solid #30363d; border-radius: 4px; font-size: .8rem; cursor: pointer; }
+
+/* 結果 */
+#resultArea { margin-top: 20px; min-height: 200px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+#resultArea img { max-width: 100%; max-height: 600px; display: block; }
+#spinner { display: none; flex-direction: column; align-items: center; gap: 12px; color: #8b949e; }
+#spinner i { font-size: 2rem; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.placeholder { color: #444; font-size: .9rem; }
+#dlBtn { display: none; margin-top: 10px; }
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 20px; }
+.gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
+.gallery img:hover { border-color: #58a6ff; }
+</style>
+</head>
+<body>
+<div id="site-header">
+  <a href="/tools/"><i class="fa fa-chevron-left"></i> DELTA</a>
+  <span style="color:#e6edf3"><i class="fa fa-image"></i> Image Gen</span>
+</div>
+<div id="main-content">
+<h1><i class="fa fa-image"></i> delta image gen <span>lightweight</span></h1>
+
+<!-- 1. キャスト選択 -->
+<div class="section">
+  <label><i class="fa fa-users" style="margin-right:6px"></i>キャスト参照</label>
+  <div class="cast-list" id="castList"></div>
+  <div id="styleArea" style="display:none">
+    <label style="font-size:.75rem;color:#555;margin-top:4px">スタイル選択：</label>
+    <div class="style-row" id="styleRow"></div>
+  </div>
+  <div class="cast-preview" id="castPreview" style="margin-top:10px"></div>
+</div>
+
+<!-- 2. タッチ選択 -->
+<div class="section">
+  <label><i class="fa fa-palette" style="margin-right:6px"></i>タッチ（画風）</label>
+  <div class="touch-grid" id="touchGrid"></div>
+</div>
+
+<!-- 3. モデル・アスペクト -->
+<div class="section row2">
+  <div>
+    <label><i class="fa fa-microchip" style="margin-right:6px"></i>モデル</label>
+    <select id="model">
+      <option value="gemini-2.5-flash-image">gemini-2.5-flash-image</option>
+      <option value="gemini-3-pro-image-preview">gemini-3-pro-image-preview</option>
+      <option value="imagen-4.0-fast-generate-001">imagen-4-fast</option>
+    </select>
+  </div>
+  <div>
+    <label><i class="fa fa-crop" style="margin-right:6px"></i>アスペクト比</label>
+    <select id="aspect">
+      <option value="1:1">1:1 (正方形)</option>
+      <option value="16:9" selected>16:9 (横)</option>
+      <option value="9:16">9:16 (縦)</option>
+      <option value="4:3">4:3</option>
+      <option value="3:4">3:4</option>
+    </select>
+  </div>
+</div>
+
+<!-- 4. プロンプト -->
+<div class="section">
+  <label><i class="fa fa-pencil" style="margin-right:6px"></i>プロンプト</label>
+  <textarea id="prompt" placeholder="シーンや状況を入力..."></textarea>
+</div>
+
+<div class="section">
+  <button class="btn btn-primary" id="genBtn" onclick="generate()"><i class="fa fa-wand-magic-sparkles"></i> 生成</button>
+</div>
+
+<div id="resultArea">
+  <div id="spinner"><i class="fa fa-spinner"></i><span>生成中...</span></div>
+  <p class="placeholder">ここに画像が表示されます</p>
+</div>
+<div style="text-align:center">
+  <a id="dlBtn" class="btn btn-sm" download><i class="fa fa-download"></i> ダウンロード</a>
+</div>
+
+<div class="gallery" id="gallery"></div>
+
+<script>
+let casts = {};
+let selectedCasts = []; // [{id, style, label}]
+let touchPresets = [];
+let selectedTouch = null;
+const LABELS = 'ABCDEFGH'.split('');
+let focusCastId = null; // スタイル選択中のキャスト
+
+async function init() {
+  const [r1, r2] = await Promise.all([fetch('/api/casts'), fetch('/api/touch_presets')]);
+  casts = await r1.json();
+  touchPresets = await r2.json();
+  renderCastList();
+  renderTouchGrid();
+  loadGallery();
+}
+
+// キャストカード一覧を描画
+function renderCastList() {
+  const list = document.getElementById('castList');
+  list.innerHTML = Object.entries(casts).map(([id, c]) => {
+    const thumb = c.styles?.[0] ? `/casts/${id}/${c.styles[0]}.jpg` : '';
+    const sel = selectedCasts.find(s => s.id === id);
+    const badge = sel ? `<div class="cast-badge">${sel.label}</div>` : '';
+    return `<div class="cast-card ${sel ? 'selected' : ''}" id="card-${id}" onclick="toggleCast('${id}')">
+      ${badge}
+      ${thumb ? `<img src="${thumb}" onerror="this.style.display='none'">` : '<div style="height:80px"></div>'}
+      <div class="cast-name">${c.display_name || id}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCast(id) {
+  const idx = selectedCasts.findIndex(s => s.id === id);
+  if (idx >= 0) {
+    // 選択解除
+    selectedCasts.splice(idx, 1);
+    // labelを再割り当て
+    selectedCasts.forEach((s, i) => s.label = LABELS[i]);
+    focusCastId = null;
+    document.getElementById('styleArea').style.display = 'none';
+  } else {
+    // 選択追加（最大8）
+    if (selectedCasts.length >= 8) return;
+    const label = LABELS[selectedCasts.length];
+    const firstStyle = casts[id]?.styles?.[0] || '';
+    selectedCasts.push({ id, style: firstStyle, label });
+    focusCastId = id;
+    showStyleSelect(id);
+  }
+  renderCastList();
+  renderCastPreview();
+}
+
+function showStyleSelect(id) {
+  const styles = casts[id]?.styles || [];
+  const sel = selectedCasts.find(s => s.id === id);
+  document.getElementById('styleArea').style.display = 'block';
+  document.getElementById('styleRow').innerHTML = styles.map(s =>
+    `<button class="style-btn ${sel?.style === s ? 'active' : ''}" onclick="selectStyle('${id}','${s}')">${s}</button>`
+  ).join('');
+  focusCastId = id;
+}
+
+function selectStyle(id, style) {
+  const s = selectedCasts.find(s => s.id === id);
+  if (s) s.style = style;
+  document.querySelectorAll('.style-btn').forEach(b => b.classList.toggle('active', b.textContent === style));
+  renderCastPreview();
+}
+
+function renderCastPreview() {
+  const preview = document.getElementById('castPreview');
+  if (!selectedCasts.length) { preview.innerHTML = ''; return; }
+  preview.innerHTML = selectedCasts.map(s =>
+    `<div class="cast-preview-item">
+      <img src="/casts/${s.id}/${s.style}.jpg" onerror="this.style.opacity=.3">
+      <span>${s.label}: ${casts[s.id]?.display_name || s.id} / ${s.style}</span>
+    </div>`
+  ).join('');
+}
+
+// タッチグリッド
+function renderTouchGrid() {
+  const grid = document.getElementById('touchGrid');
+  const none = document.createElement('button');
+  none.className = 'touch-btn active';
+  none.textContent = 'なし';
+  none.onclick = () => selectTouch(null, none);
+  grid.appendChild(none);
+  touchPresets.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'touch-btn';
+    btn.textContent = p.label;
+    btn.onclick = () => selectTouch(p, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function selectTouch(preset, btn) {
+  selectedTouch = preset;
+  document.querySelectorAll('.touch-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// 生成
+async function generate() {
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) { alert('プロンプトを入力してください'); return; }
+
+  const btn = document.getElementById('genBtn');
+  const spinner = document.getElementById('spinner');
+  const resultArea = document.getElementById('resultArea');
+
+  btn.disabled = true;
+  resultArea.querySelector('.placeholder')?.remove();
+  resultArea.querySelector('img')?.remove();
+  spinner.style.display = 'flex';
+
+  const castRefs = selectedCasts.filter(s => s.id && s.style);
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: selectedTouch ? prompt + '. ' + selectedTouch.prompt : prompt,
+        aspect: document.getElementById('aspect').value,
+        model: document.getElementById('model').value,
+        cast_refs: castRefs,
+      })
+    });
+    const data = await res.json();
+    spinner.style.display = 'none';
+    if (data.ok) {
+      const img = document.createElement('img');
+      img.src = data.url + '?t=' + Date.now();
+      resultArea.appendChild(img);
+      const dl = document.getElementById('dlBtn');
+      dl.href = data.url;
+      dl.download = data.filename;
+      dl.style.display = 'inline-block';
+      loadGallery();
+    } else {
+      resultArea.innerHTML = `<p style="color:#e74c3c;padding:20px">${data.error}</p>`;
+    }
+  } catch(e) {
+    spinner.style.display = 'none';
+    resultArea.innerHTML = `<p style="color:#e74c3c;padding:20px">${e.message}</p>`;
+  }
+  btn.disabled = false;
+}
+
+async function loadGallery() {
+  const r = await fetch('/api/generated');
+  const files = await r.json();
+  document.getElementById('gallery').innerHTML = files.slice(0, 20).map(f =>
+    `<img src="${f.url}?t=${f.mtime}" onclick="window.open('${f.url}','_blank')" title="${f.filename}">`
+  ).join('');
+}
+
+init();
+</script>
+</div>
+</body>
+</html>

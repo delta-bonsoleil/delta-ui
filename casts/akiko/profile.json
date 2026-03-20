@@ -1,0 +1,100 @@
+{
+  "name": "Bizeny Akiko",
+  "display_name": "Bizeny Akiko",
+  "emoji": "",
+  "role": "",
+  "division": "",
+  "hire_date": "",
+  "character": "Bizeny彰子（ビゼニー・アキコ）: 備前焼の里・伊部出身の陶芸家の娘。ダークブラウンのお団子ヘア（高めシニヨン）、顎丈のサイドの後れ毛、抹茶色（セージグリーン）の着物にクリーム色の花柄、薄ピンクの頬。穏やかで知的、備前焼への深い愛情。20代前半。",
+  "prompt_features": "young Japanese-French woman with dark brown hair pulled up in a high bun (topknot) with soft side-swept wispy bangs and loose face-framing strands reaching her jaw, rosy cheeks, gentle and intellectual expression",
+  "default_style": "normal",
+  "styles": {
+    "normal": {
+      "description": "通常版 — 着物（デフォルト）",
+      "image": "main.jpg",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": null
+    },
+    "pure": {
+      "description": "ピュア — 緑の雲紋着物・正面向き・清楚な笑顔",
+      "image": "pure.jpg",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": "young Japanese-French woman with dark brown hair neatly pulled up in a high bun with soft bangs, rosy cheeks, high quality"
+    },
+    "misterius": {
+      "description": "ミステリアス — 紺の花柄着物・肩見せ・備前焼の壺抱え・後ろ振り向き",
+      "image": "misterius.jpg",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": "young Japanese-French woman with dark brown hair in a loose low bun with soft side-swept strands, mysterious alluring smile, rosy cheeks"
+    },
+    "casual": {
+      "description": "カジュアル — カーディガン姿",
+      "image": "casual.png",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": "young Japanese-French woman with dark brown hair in a relaxed low ponytail with soft side-swept wispy bangs and loose face-framing strands, beige knit cardigan over white blouse, taupe straight-leg pants, rosy cheeks, gentle and intellectual expression"
+    },
+    "normal": {
+      "description": "自然派 シャツ＋ホットパンツ",
+      "image": "natural.jpg",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": null
+    },
+    "corporate": {
+      "description": "ビジネス — スーツ姿",
+      "image": "corporate.jpg",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": "young Japanese-French woman with dark brown hair pulled up in a neat bun with soft side-swept wispy bangs, navy blue business suit with white blouse, rosy cheeks, confident and professional expression"
+    },
+    "dressup": {
+      "description": "ドレスアップ — エメラルドグリーンドレス",
+      "image": "dressup.png",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": ""
+    },
+    "armored": {
+      "description": "鎧 — 備前焼テクスチャの和風鎧＋刀",
+      "image": "armored.jpg",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": ""
+    },
+    "punk": {
+      "description": "パンク — パリジェンヌ・パンクストリート",
+      "image": "punk.jpg",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": ""
+    },
+    "racing": {
+      "description": "BizenyRacing版",
+      "image": "br_akiko.jpg",
+      "overrides": [
+        "prompt_features"
+      ],
+      "prompt_features_override": ""
+    },
+    "4koma": {
+      "description": "4コマ漫画 — Instagram投稿用",
+      "prompt_features_override": null
+    }
+  },
+  "personality": {},
+  "avatars": {},
+  "updated_at": "2026-03-08T05:44:49.272Z"
+}
