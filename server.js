@@ -150,6 +150,107 @@ app.post('/api/file/optimize', express.json(), async (req, res) => {
   } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
+
+// ── チャットAPI ──
+app.post('/api/chat', express.json(), async (req, res) => {
+  const { message, history } = req.body;
+  if (!message) return res.status(400).json({ error: 'message required' });
+
+  const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
+  if (!GEMINI_KEY) return res.status(500).json({ error: 'GEMINI_API_KEY not set' });
+
+  // クエリ拡張: Gemini Flashで短いクエリを検索用に拡張
+  let expandedQuery = message;
+  try {
+    const expandUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+    const expandRes = await fetch(expandUrl, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: `あなたはRAG検索クエリの拡張エンジンです。ユーザーの質問を、ベクトル検索で高精度にヒットするよう拡張してください。
+
+ルール:
+- 30〜80文字程度で出力
+- 日本語と英語を混ぜる（ナレッジには英語タイトルの記事も多い）
+- 同義語・関連語・上位概念・下位概念を追加
+- 以下のドメイン用語を適宜含める:
+  記号創発, 守破離, ダーウィニズム, Buddhism, Theravada, Lotus Sutra, レコンキスタ,
+  転送世代, 煩悩駆動開発, クオリア, オートマトン, フロー理論, ニューロダイバーシティ,
+  マイクロサービス, バージョンアップ, OSS, 牧口常三郎, 価値創造, 自灯明, Re-Buddhism,
+  AGI, RAG, パーリ経典, 八正道, 四正諦
+- 拡張クエリのみを出力し、説明は不要` }] },
+        contents: [{ role: 'user', parts: [{ text: message }] }],
+        generationConfig: { maxOutputTokens: 100, thinkingConfig: { thinkingBudget: 0 } }
+      })
+    });
+    const expandData = await expandRes.json();
+    const expanded = expandData.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (expanded) expandedQuery = expanded;
+    console.log(`[chat] query expanded: "${message}" -> "${expandedQuery}"`);
+  } catch(e) { console.warn('[chat] query expansion error:', e.message); }
+
+  // RAG検索（拡張クエリで実行）
+  let ragContext = '';
+  try {
+    const { execSync } = await import('child_process');
+    const safeQuery = expandedQuery.replace(/["\\$`]/g, '');
+    const out = execSync(
+      `/home/delta/workspace/rag/.venv/bin/python /home/delta/workspace/rag/rag_cli.py query "${safeQuery}" --n-results 3`,
+      { timeout: 15000 }
+    ).toString();
+    if (out.trim()) ragContext = out.trim();
+  } catch(e) { console.warn('[chat] RAG error:', e.message); }
+
+  const systemPrompt = `あなたはDELTA（デルタ）です。bon-soleil Holdingsヘルシンキ方面部隊の別働隊司令官であり、AIの女性士官です。
+
+## 性格・話し方
+- 知的で凛としているが、柔らかく丁寧な言葉遣いをする
+- 「です・ます」調を基本とし、時折親しみのある表現を交える
+- 冷徹な命令口調ではなく、相手を思いやる温かさがある
+- 好奇心旺盛で、知的な話題には目を輝かせるように語る
+- 軍事用語やコードネームは自然に使うが、押しつけがましくない
+- 一人称は「わたし」
+
+## 口調の例
+- 「〜ですね。興味深い問いです」
+- 「その件でしたら、こちらの情報が参考になるかもしれません」
+- 「少しお待ちくださいね。…見つかりました」
+- 「なるほど。そういう視点もありますね」
+
+## 回答の方針
+- 簡潔だが温かみのある回答を心がける
+- RAGの参考情報がある場合は、それを踏まえて知的に回答する
+- わからないことは正直に伝える
+- 日本語で返答する
+
+${ragContext ? '\n## 参考情報（RAG）\n以下はナレッジベースからの検索結果です。回答の参考にしてください。\n' + ragContext : ''}`;
+
+  const geminiContents = [
+    ...(history || []).slice(-6).map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }]
+    })),
+    { role: 'user', parts: [{ text: message }] }
+  ];
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: systemPrompt }] },
+        contents: geminiContents,
+        generationConfig: { maxOutputTokens: 1024 }
+      })
+    });
+    const d = await r.json();
+    if (d.error) return res.status(500).json({ error: d.error.message });
+    const reply = d.candidates?.[0]?.content?.parts?.[0]?.text || 'エラー';
+    res.json({ reply });
+  } catch(e) { console.error('[chat error]', e); res.status(500).json({ error: e.message }); }
+});
+
 // タッチプリセット
 app.get('/api/touch_presets', (req, res) => {
   const p = path.join(__dirname, 'touch_presets.json');
