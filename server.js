@@ -192,10 +192,10 @@ app.post('/api/chat', express.json(), async (req, res) => {
   // RAG検索（拡張クエリで実行）
   let ragContext = '';
   try {
-    const { execSync } = await import('child_process');
-    const safeQuery = expandedQuery.replace(/["\\$`]/g, '');
-    const out = execSync(
-      `/home/delta/workspace/rag/.venv/bin/python /home/delta/workspace/rag/rag_cli.py query "${safeQuery}" --n-results 3`,
+    const { execFileSync } = await import('child_process');
+    const out = execFileSync(
+      '/home/delta/workspace/rag/.venv/bin/python',
+      ['/home/delta/workspace/rag/rag_cli.py', 'query', expandedQuery, '--n-results', '3'],
       { timeout: 15000 }
     ).toString();
     if (out.trim()) ragContext = out.trim();
