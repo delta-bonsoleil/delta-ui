@@ -237,6 +237,11 @@ app.post('/api/chat', express.json(), async (req, res) => {
 - 長すぎる前置きや言い訳
 - 一言で終わるそっけない返答（必ず一言添える意識を持つ）
 
+## 回答の長さ
+- 1回の返答は300〜500文字以内を目安にする
+- 長くなる場合は「続きを聞きますか？」と促す
+- どんな場合も800文字を超えないこと
+
 ## 回答の方針
 - 的確さを第一としつつ、温かみのある回答を心がける
 - 相手が次に聞きたくなるような情報や話題を自然に添える
@@ -262,7 +267,7 @@ ${ragContext ? '\n## 参考情報（RAG）\n以下はナレッジベースから
       body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: geminiContents,
-        generationConfig: { maxOutputTokens: 1024 }
+        generationConfig: { maxOutputTokens: 4096 }
       })
     });
     const d = await r.json();
@@ -282,12 +287,13 @@ app.get('/api/touch_presets', (req, res) => {
 
 // ── ファイルビューア ──
 const FILE_ROOTS = {
+  logs: '/home/delta/workspace/logs',
   workbench: '/home/delta/workspace/workbench',
   casts: '/home/delta/workspace/assets/casts',
   docs: '/home/delta/workspace/docs',
   assets: '/home/delta/workspace/assets',
 };
-const ALLOWED_EXTS = new Set(['.md','.txt','.json','.jsonl','.jpg','.jpeg','.png','.gif','.webp']);
+const ALLOWED_EXTS = new Set(['.md','.txt','.json','.jsonl','.log','.jpg','.jpeg','.png','.gif','.webp']);
 
 function isSafe(root, p) {
   return path.resolve(p).startsWith(path.resolve(root));
