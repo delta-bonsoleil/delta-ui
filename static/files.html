@@ -203,7 +203,8 @@ async function openFile(i) {
     if (isLast) return '<span style="color:#e6edf3">' + p + '</span>';
     return '<a href="#" onclick="filterByDir(\'' + fullPath + '\');return false" style="color:#58a6ff;text-decoration:none">' + p + '</a>';
   }).join('<span style="color:#333"> / </span>');
-  document.getElementById('main-header').innerHTML = breadcrumb;
+  const copyBtn = '<button onclick="copyPath()" title="パスをコピー" style="margin-left:8px;padding:2px 7px;background:none;border:1px solid #333;border-radius:4px;color:#555;cursor:pointer;font-size:.7rem"><i class=\"fa fa-copy\"></i></button>';
+  document.getElementById('main-header').innerHTML = breadcrumb + copyBtn;
   // action-bar表示 + 編集可否判定
   document.getElementById('action-bar').style.display = 'flex';
   cancelEdit();
@@ -350,6 +351,14 @@ async function optimizeImage() {
     alert('軽量化完了！ ' + pct + '% 削減 (' + saved + 'KB 節約)');
     openFile(allFiles.findIndex(f => f.path === currentFilePath));
   } else alert('失敗: ' + d.error);
+}
+
+function copyPath() {
+  if (!currentFilePath) return;
+  navigator.clipboard.writeText(currentFilePath).then(() => {
+    const btn = document.querySelector('#main-header button');
+    if (btn) { btn.innerHTML = '<i class="fa fa-check"></i>'; setTimeout(() => btn.innerHTML = '<i class="fa fa-copy"></i>', 1500); }
+  });
 }
 
 function filterByDir(dir) {

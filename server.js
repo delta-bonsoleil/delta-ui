@@ -289,7 +289,6 @@ app.get('/api/touch_presets', (req, res) => {
 const FILE_ROOTS = {
   logs: '/home/delta/workspace/logs',
   workbench: '/home/delta/workspace/workbench',
-  casts: '/home/delta/workspace/assets/casts',
   docs: '/home/delta/workspace/docs',
   assets: '/home/delta/workspace/assets',
 };
